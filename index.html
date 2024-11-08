@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Selection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        #projectContainer {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-evenly;
+            margin: 20px;
+        }
+        .card-container {
+            perspective: 1000px;
+            display: inline-block;
+            margin: 3px;
+            cursor: pointer;
+        }
+        .card {
+            width: 250px;
+            height: 250px;
+            text-align: center;
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+            position: relative;
+        }
+        .card.available {
+            background-color: #d4f4dd; /* Green */
+        }
+        .card.taken {
+            background-color: #f4d4d4; /* Red */
+            cursor: not-allowed;
+        }
+        .card .side {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .card .front {
+            background: inherit; /* Inherit background color from card's class */
+        }
+        .card .back {
+            background: #f1f1f1;
+            transform: rotateY(180deg);
+        }
+        .card-container:hover .card {
+            transform: rotateY(180deg);
+        }
+    </style>
+</head>
+<body>
+    <h1><center>COM 405E AI Project Selection</center></h1>
+    <div id="projectContainer"></div>
+
+    <script>
+        let hasSelected = false; // Tracks if the user has selected a project
+
+        // Initial project data with name, question, and requirements
+        const defaultProjects = [
+            { id: 1, name: "Smart Traffic Management System", question: "Develop a model-based agent for a smart traffic management system.", requirements: "Perceive real-time traffic data, predict congestion, adjust signal timings.", status: "available", registrationNumber: null },
+            { id: 2, name: "Personalized Study Assistant", question: "Design a model-based agent to serve as a personalized study assistant.", requirements: "Monitor progress, predict difficulties, suggest study schedule.", status: "available", registrationNumber: null },
+            { id: 3, name: "Healthcare Diagnosis Assistant", question: "Create a model-based diagnostic agent to assist doctors by analyzing symptoms.", requirements: "Collect symptoms, predict diseases, suggest next steps.", status: "available", registrationNumber: null },
+            { id: 4, name: "Automated Financial Trading Bot", question: "Build a model-based trading agent that monitors stock data and executes trades.", requirements: "Monitor stock data, predict trends, execute trades.", status: "available", registrationNumber: null },
+            { id: 5, name: "Smart Agriculture System", question: "Develop a smart agriculture system using sensor data to optimize farming.", requirements: "Collect soil data, monitor climate, recommend actions.", status: "available", registrationNumber: null },
+            { id: 6, name: "Autonomous Drone Navigation", question: "Create a model-based agent for autonomous drone navigation.", requirements: "Collect environmental data, plan flight path, avoid obstacles.", status: "available", registrationNumber: null },
+            { id: 7, name: "AI-based Personal Health Coach", question: "Design a personal health assistant that uses AI to monitor health data and suggest wellness plans.", requirements: "Monitor vitals, predict health risks, suggest workouts.", status: "available", registrationNumber: null },
+            { id: 8, name: "E-Commerce Recommendation System", question: "Build a recommendation engine for e-commerce platforms.", requirements: "Analyze user behavior, predict products of interest, improve sales.", status: "available", registrationNumber: null },
+            { id: 9, name: "Smart City Waste Management", question: "Design a system to optimize waste collection and recycling in a smart city.", requirements: "Monitor waste levels, predict collection schedules, optimize routes.", status: "available", registrationNumber: null },
+            { id: 10, name: "AI-Based Healthcare Monitoring", question: "Create a system that uses AI to continuously monitor and analyze patient data for early detection of diseases.", requirements: "Monitor vital signs, predict potential health risks, alert healthcare providers.", status: "available", registrationNumber: null },
+            { id: 11, name: "Autonomous Car Parking System", question: "Design a model to create an autonomous car parking system.", requirements: "Monitor parking spaces, predict car movements, assist in parking.", status: "available", registrationNumber: null },
+            { id: 12, name: "AI-based Music Composer", question: "Develop a system that generates original music using AI.", requirements: "Analyze existing music, generate new compositions, adapt to user preferences.", status: "available", registrationNumber: null },
+            { id: 13, name: "Smart Home Automation System", question: "Create a smart home automation system that learns user preferences.", requirements: "Monitor energy use, predict optimal device settings, adjust home temperature.", status: "available", registrationNumber: null },
+            { id: 14, name: "AI for Fraud Detection", question: "Build a system to detect fraudulent activities using machine learning.", requirements: "Analyze transactions, predict fraud, alert security teams.", status: "available", registrationNumber: null },
+            { id: 15, name: "AI Chatbot for Customer Service", question: "Create an AI-powered chatbot to handle customer inquiries and support.", requirements: "Understand customer queries, provide responses, escalate complex issues.", status: "available", registrationNumber: null },
+            { id: 16, name: "Predictive Maintenance for Industrial Equipment", question: "Develop a predictive maintenance system for industrial machines.", requirements: "Monitor machinery health, predict failures, schedule maintenance.", status: "available", registrationNumber: null },
+            { id: 17, name: "AI-driven Recruitment System", question: "Design an AI system to assist with hiring decisions.", requirements: "Analyze resumes, predict candidate success, rank applicants.", status: "available", registrationNumber: null },
+            { id: 18, name: "AI-powered Recipe Generator", question: "Create an AI system that generates new recipes based on ingredients.", requirements: "Understand user preferences, generate recipes, adapt to available ingredients.", status: "available", registrationNumber: null },
+            { id: 19, name: "AI-driven Virtual Assistant", question: "Design a virtual assistant powered by AI to perform tasks like scheduling, reminders, etc.", requirements: "Understand natural language, perform tasks, learn from user behavior.", status: "available", registrationNumber: null },
+            { id: 20, name: "AI-powered Social Media Sentiment Analyzer", question: "Create a sentiment analysis system for social media posts.", requirements: "Analyze social media content, predict sentiment, generate insights.", status: "available", registrationNumber: null },
+            { id: 21, name: "Smart Waste Recycling System", question: "Develop a system to optimize waste sorting and recycling.", requirements: "Monitor waste types, predict recycling patterns, automate sorting.", status: "available", registrationNumber: null },
+            { id: 22, name: "Predictive Text Generation System", question: "Build an AI system that predicts the next word or phrase based on previous text.", requirements: "Analyze user typing patterns, predict next words, improve speed.", status: "available", registrationNumber: null },
+            { id: 23, name: "AI for Personalized Learning", question: "Create an AI-powered personalized learning assistant for students.", requirements: "Monitor progress, predict challenges, adapt learning plans.", status: "available", registrationNumber: null },
+            { id: 24, name: "AI-driven News Aggregator", question: "Design an AI-based news aggregator that customizes news feeds.", requirements: "Understand user preferences, collect relevant news, summarize articles.", status: "available", registrationNumber: null },
+            { id: 25, name: "Smart Security System", question: "Build a smart security system that uses AI to detect unusual activity.", requirements: "Monitor camera feeds, analyze patterns, alert authorities.", status: "available", registrationNumber: null },
+            { id: 26, name: "Personalized Fitness Trainer", question: "Design an AI system that generates personalized fitness plans.", requirements: "Analyze user data, predict fitness goals, suggest exercises.", status: "available", registrationNumber: null },
+            { id: 27, name: "AI for Automated Data Entry", question: "Create an AI system to automate data entry tasks.", requirements: "Analyze data, predict data types, automate entry process.", status: "available", registrationNumber: null },
+            { id: 28, name: "Automated Customer Feedback Analyzer", question: "Design an AI system to analyze customer feedback and generate insights.", requirements: "Collect feedback, predict sentiment, categorize responses.", status: "available", registrationNumber: null },
+            { id: 29, name: "AI-powered Translation System", question: "Create a system that automatically translates languages in real-time.", requirements: "Understand language patterns, predict translations, improve accuracy.", status: "available", registrationNumber: null },
+            { id: 30, name: "AI for Financial Forecasting", question: "Design a system that predicts stock market trends using AI.", requirements: "Analyze financial data, predict trends, suggest investment strategies.", status: "available", registrationNumber: null },
+            { id: 31, name: "AI for Game Development", question: "Create an AI system that generates intelligent NPC behaviors in video games.", requirements: "Understand game mechanics, generate realistic NPC actions, adapt to player behavior.", status: "available", registrationNumber: null },
+            { id: 32, name: "AI-powered Smart Assistant for Elderly", question: "Design a system to assist elderly people with daily tasks using AI.", requirements: "Monitor health, provide reminders, suggest activities.", status: "available", registrationNumber: null },
+            { id: 33, name: "AI-based Music Recommendation System", question: "Build an AI-driven music recommendation engine.", requirements: "Analyze listening habits, predict preferences, suggest songs.", status: "available", registrationNumber: null },
+            { id: 34, name: "AI for Personalized Travel Planning", question: "Create a system to recommend personalized travel plans using AI.", requirements: "Understand preferences, analyze destinations, suggest itineraries.", status: "available", registrationNumber: null },
+            { id: 35, name: "AI-powered Language Learning Assistant", question: "Develop an AI assistant to help users learn new languages.", requirements: "Analyze language progress, suggest exercises, correct mistakes.", status: "available", registrationNumber: null },
+            { id: 36, name: "AI for Healthcare Data Analytics", question: "Build a system to analyze healthcare data and provide insights.", requirements: "Analyze patient records, predict health trends, suggest interventions.", status: "available", registrationNumber: null },
+            { id: 37, name: "AI for Predicting Natural Disasters", question: "Create a system that predicts natural disasters like earthquakes or floods.", requirements: "Monitor environmental data, predict events, alert authorities.", status: "available", registrationNumber: null },
+            { id: 38, name: "AI-powered News Writing Assistant", question: "Design a system that helps journalists write news articles using AI.", requirements: "Analyze current events, suggest headlines, generate articles.", status: "available", registrationNumber: null },
+            { id: 39, name: "AI for Automated Image Captioning", question: "Create an AI model that generates captions for images.", requirements: "Analyze images, generate accurate captions, improve accuracy over time.", status: "available", registrationNumber: null },
+            { id: 40, name: "AI-based Job Recommendation System", question: "Develop a system that recommends jobs to users based on their qualifications.", requirements: "Analyze resumes, predict job fits, suggest opportunities.", status: "available", registrationNumber: null },
+            { id: 41, name: "AI for Document Summarization", question: "Design a system that summarizes long documents using AI.", requirements: "Analyze text, identify key points, generate summaries.", status: "available", registrationNumber: null },
+            { id: 42, name: "AI-powered Virtual Shopping Assistant", question: "Build a virtual shopping assistant that uses AI to recommend products.", requirements: "Analyze shopping habits, suggest items, provide reviews.", status: "available", registrationNumber: null },
+            { id: 43, name: "Smart Healthcare Monitoring System", question: "Develop a smart healthcare system that monitors patient health in real-time.", requirements: "Track vitals, predict health risks, alert healthcare providers.", status: "available", registrationNumber: null },
+            { id: 44, name: "AI for Traffic Pattern Prediction", question: "Create a system that predicts traffic patterns based on historical data.", requirements: "Analyze traffic data, predict congestion, optimize routes.", status: "available", registrationNumber: null },
+            { id: 45, name: "AI for Automated Essay Grading", question: "Design a system that automatically grades essays using AI.", requirements: "Analyze essays, evaluate content, provide feedback.", status: "available", registrationNumber: null },
+            { id: 46, name: "AI for Predicting Customer Churn", question: "Create a system that predicts which customers are likely to churn.", requirements: "Analyze customer data, predict churn, recommend retention strategies.", status: "available", registrationNumber: null },
+            { id: 47, name: "AI-powered Sports Analytics", question: "Build a system to analyze sports data and predict outcomes.", requirements: "Analyze match data, predict results, provide insights.", status: "available", registrationNumber: null },
+            { id: 48, name: "AI for Financial Risk Management", question: "Design a system that assesses financial risks using AI.", requirements: "Analyze financial data, predict risks, suggest mitigation strategies.", status: "available", registrationNumber: null },
+            { id: 49, name: "AI for Automated Social Media Marketing", question: "Create a system that automates social media marketing using AI.", requirements: "Analyze user engagement, predict best times to post, optimize campaigns.", status: "available", registrationNumber: null },
+            { id: 50, name: "Quantum Computing Research", question: "Investigate quantum algorithms for solving complex problems.", requirements: "Understand quantum mechanics, develop algorithms, test applications.", status: "available", registrationNumber: null }
+        ];
+
+        // Load projects from localStorage or use the default list if not available
+        const savedProjects = JSON.parse(localStorage.getItem('projects')) || defaultProjects;
+        const projects = savedProjects.map((project, index) => {
+            // Set hasSelected to true if any project was previously taken by the user
+            if (project.status === 'taken' && project.isSelectedByUser) {
+                hasSelected = true;
+            }
+            return project;
+        });
+
+        const projectContainer = document.getElementById('projectContainer');
+
+        function renderProjects() {
+            projectContainer.innerHTML = '';
+            projects.forEach(project => {
+                const cardContainer = document.createElement('div');
+                cardContainer.classList.add('card-container');
+
+                const card = document.createElement('div');
+                card.classList.add('card', project.status);
+                card.innerHTML = `
+                    <div class="side front">
+                        <h3>${project.id}</h3>
+                        <h3>${project.name}</h3>
+                        <p>${project.question}</p>
+                        ${project.status === "taken" && project.registrationNumber ? `<p style="color: #b30000; font-size: 12px;"><strong>This project has been taken by ${project.registrationNumber}</strong></p>` : ""}
+                    </div>
+                    <div class="side back">
+                        <h4>Requirements:</h4>
+                        <p>${project.requirements}</p>
+                    </div>
+                `;
+
+                // Click handling for available projects
+                if (project.status === 'available' && !hasSelected) {
+                    card.onclick = () => {
+                        const regNumber = prompt("Enter your registration number:");
+                        if (regNumber) {
+                            project.status = 'taken';
+                            project.isSelectedByUser = true;
+                            project.registrationNumber = regNumber;
+                            hasSelected = true;
+                            localStorage.setItem('projects', JSON.stringify(projects));
+                            alert(`You have selected ${project.name}.`);
+                            renderProjects();
+                        } else {
+                            alert("Registration number is required to select a project.");
+                        }
+                    };
+                } else if (project.status === 'taken') {
+                    card.onclick = () => {
+                        const message = project.isSelectedByUser ? 
+                            `You have already selected ${project.name}.` : 
+                            `${project.name} is already taken by ${project.registrationNumber}.`;
+                        alert(message);
+                    };
+                } else {
+                    card.onclick = () => alert('You have already selected a project.');
+                }
+
+                cardContainer.appendChild(card);
+                projectContainer.appendChild(cardContainer);
+            });
+        }
+
+        renderProjects();
+    </script>
+</body>
+</html>
